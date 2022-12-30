@@ -1,1 +1,1 @@
-worker: python BetaGammaBot.py
+worker: python main.py

@@ -1,19 +1,10 @@
 import discord
 from discord.utils import get
-import os
+from discord.ext import commands
 
-DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = 1052440965127864360
 
-def main():
-    intents = discord.Intents.default()
-    intents.message_content = True
-    intents.reactions = True
-    client = discord.Client(intents=intents)
-
-    @client.event
-    async def on_ready():
-        print("Logged on")
+def add_trophy_feature(client):
 
     @client.event
     async def on_raw_reaction_add(payload):
@@ -21,7 +12,7 @@ def main():
         message = await channel.fetch_message(payload.message_id)
         reaction = get(message.reactions, emoji="🏆")
 
-        
+            
         if reaction and reaction.count >= 5:
             send_channel = client.get_channel(CHANNEL_ID)
             async for old_msg in send_channel.history(limit=10):
@@ -38,16 +29,12 @@ def main():
             embed_message.add_field(name="Jump To", value=attached_link, inline=True)
 
             for attachment in message.attachments:
-                embed_message.set_image(url=attachment)
-            
+                if attachment.content_type.startswith("video"):
+                    embed_message.add_field(name="Video Link", value=attachment)
+                else:
+                    embed_message.set_image(url=attachment)
+                
+                
             embed_message.set_footer(text=message.created_at)
 
             await send_channel.send(embed=embed_message)
-
-
-
-    client.run(DISCORD_TOKEN)
-
-
-if __name__ == "__main__":
-    main()
