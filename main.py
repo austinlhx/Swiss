@@ -6,6 +6,7 @@ import os, logging
 from trophy_feature import add_trophy_feature
 from user_info_feature import add_user_info_feature
 from misc_feature import add_misc_features
+from blackjack_feature import add_blackjack_feature
 
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
 
@@ -24,6 +25,7 @@ def main():
     add_trophy_feature(client)
     add_user_info_feature(client)
     add_misc_features(client)
+    add_blackjack_feature(client)
     
     client.run(DISCORD_TOKEN)
 
