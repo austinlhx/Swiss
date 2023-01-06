@@ -1,22 +1,26 @@
-from deck_of_cards import deck_of_cards
-from blackjack import Blackjack, CREDITS_FILE
+from blackjack import Blackjack, POSTGRES
 import discord
 from discord.ext import commands, tasks
 
-import json, datetime, heapq
+import datetime, psycopg
 
 CACHE = {}
 DAILY_CLAIMS = {}
 
 def add_blackjack_feature(client): 
     
+    create_credit_table()
+
     @client.command(name='blackjack', aliases=['bj'])
     async def blackjack(ctx, *args):
         if len(args) > 1 or len(args) == 0:
             await ctx.send("Please re-enter command $blackjack {wager_amount}")
             return
-        
-        credits_bet = int(args[0])
+        try:
+            credits_bet = int(args[0])
+        except Exception:
+            await ctx.send("Please enter a number as an argument.")
+            return
 
         if credits_bet == 0:
             await ctx.send("Please enter a value > 0")
@@ -43,10 +47,8 @@ def add_blackjack_feature(client):
     
     @client.command()
     async def daily(ctx):
-        with open(CREDITS_FILE, 'r') as json_file:
-            data = json.load(json_file)
-            user = str(ctx.author.id)
-
+        user = str(ctx.author.id)
+            
         if DAILY_CLAIMS.get(user):
             await ctx.send("You already have claimed todays daily, please try again on " + str(DAILY_CLAIMS[user]))
             return
@@ -55,16 +57,32 @@ def add_blackjack_feature(client):
         tomorrow = curr_time + datetime.timedelta(days=1)
         DAILY_CLAIMS[user] = tomorrow
 
-        if data['credits'].get(user):
-            data['credits'][user] += 1000
-        else:
-            data['credits'][user] = 1000
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM credits WHERE user_id = %s",
+                    (user,)
+                )
+                user_credits = cur.fetchone()
+                if not user_credits:
+                    cur.execute(
+                        "INSERT INTO credits (user_id, credit) VALUES (%s, %s)",
+                        (user, 1000))
+                else:
+                    cur.execute(
+                        "UPDATE credits SET credit = credit + 1000 WHERE user_id = %s",
+                        (user,)
+                    )
+                cur.execute(
+                    "SELECT * FROM credits WHERE user_id = %s",
+                    (user,)
+                )
+                user_credits = cur.fetchone()
+                credit_count = user_credits[2]
 
-        with open(CREDITS_FILE, 'w') as json_file:    
-            json_data = json.dumps(data)
-            json_file.write(json_data)
+            conn.commit()
 
-        await ctx.send("Credits acquired, you now have " + str(data['credits'][user]) + " credits.")
+        await ctx.send("Credits acquired, you now have " + str(credit_count) + " credits.")
     
     @tasks.loop(minutes=1)
     async def daily_deletion():
@@ -76,29 +94,19 @@ def add_blackjack_feature(client):
     
     @client.command()
     async def leaderboard(ctx):
-        with open(CREDITS_FILE, 'r') as json_file:
-            data = json.load(json_file)
-            user_credits = data['credits']
-        
-        heap = []
-        for user, credit in user_credits.items():
-            heapq.heappush(heap, (-credit, user))
-        
-        top_5 = []
-        heap_size = len(heap)
-
-        if heap_size > 5:
-            heap_size = 5
-
-        for _ in range(heap_size):
-            credit, user = heapq.heappop(heap)
-            top_5.append((user, -credit))
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM credits ORDER BY credit DESC LIMIT 5;"
+                )
+                top_5 = cur.fetchall()
         
         top_5_str = ""
         for i, item in enumerate(top_5):
-            discord_user = await client.fetch_user(item[0])
+            _, user_id, credit = item
+            discord_user = await client.fetch_user(user_id)
             username = str(discord_user.name)
-            leaderboard_str = str(i+1) + ". " + username + ": " + str(item[1]) + " credits"
+            leaderboard_str = str(i+1) + ". " + username + ": " + str(credit) + " credits"
             top_5_str += leaderboard_str + "\n"
         
         embed_msg = discord.Embed(title="Leaderboard", description=top_5_str)
@@ -106,12 +114,19 @@ def add_blackjack_feature(client):
 
     @client.command()
     async def credits(ctx):
-        with open(CREDITS_FILE, 'r') as json_file:
-            data = json.load(json_file)
-            user = str(ctx.author.id)
-            credit_count = data['credits'].get(user, 0)
+        user = ctx.author.id
 
-        await ctx.send("You currently have " + str(credit_count) + " credits.")
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM credits WHERE user_id = %s",
+                    (user,)
+                )
+                extracted_user = cur.fetchone()
+                if not extracted_user:
+                    await ctx.send("You currently have 0 credits.")
+                else:
+                    await ctx.send("You currently have " + str(extracted_user[2]) + " credits.")
         
     @client.command()
     async def hit(ctx):
@@ -192,4 +207,15 @@ def add_blackjack_feature(client):
             await ctx.send("Player pushes.")
         
         del CACHE[ctx.author]
+    
+def create_credit_table():
+    with psycopg.connect(POSTGRES) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                    CREATE TABLE IF NOT EXISTS credits (
+                        id serial PRIMARY KEY,
+                        user_id bigint,
+                        credit integer)
+            """)
+        conn.commit()
 

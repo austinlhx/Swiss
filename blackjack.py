@@ -1,7 +1,8 @@
 from deck_of_cards import deck_of_cards
 
-import json
+import json, os, psycopg, logging
 
+POSTGRES = os.environ["DATABASE_URL"]
 CREDITS_FILE = 'credits.json'
 
 class Blackjack():
@@ -55,48 +56,83 @@ class Blackjack():
         return False
     
     async def double_credits(self):
-        user, _, data = self.retrieve_data_and_credits()
-        credits_won = self.credits * 2
-        data['credits'][user] += credits_won
+        user_id = self.ctx.author.id
 
-        await self.update_credits(user, data)
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                credits_won = self.credits * 2
+                cur.execute(
+                    "UPDATE credits SET credit = credit + %s WHERE user_id = %s",
+                    (credits_won, user_id)
+                )
+                if cur.rowcount == 0:
+                    logging.warning("User won " + str(self.credits * 2) + " but was not found in database.")
+                    return
+
+                conn.commit()
+        
+        await self.send_credit_updates() 
     
     async def push_credits(self):
-        user, _, data = self.retrieve_data_and_credits()
-        credits_back = self.credits
-        data['credits'][user] += credits_back
+        user = self.ctx.author.id
 
-        await self.update_credits(user, data) 
-    
-    async def update_credits(self, user, data):
-        with open(CREDITS_FILE, 'w') as json_file:
-            json_data = json.dumps(data)
-            json_file.write(json_data) 
-            await self.ctx.send("You now have " + str(data['credits'][user]) + " credits.") 
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE credits SET credit = credit + %s WHERE user_id = %s",
+                    (self.credits, user)
+                )
+                if cur.rowcount == 0:
+                    logging.warning("User won " + str(self.credits) + " but was not found in database.")
+                    return
+
+                conn.commit()
+
+        await self.send_credit_updates() 
     
     async def wager_credits(self):
-        user, user_credits, data = self.retrieve_data_and_credits()
+        user, user_credits = self.extract_user()
         if self.credits > user_credits:
             if self.doubled:
                 await self.ctx.send("You do not have enough to double. You only have " + str(user_credits) + " credits remaining.")
             else:
                 await self.ctx.send("You do not have sufficient credits, you have " + str(user_credits) + " credits.")  
             return False
+        
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE credits SET credit = credit - %s WHERE user_id = %s",
+                    (self.credits, user)
+                )
 
-        with open(CREDITS_FILE, 'w') as json_file:
-            data['credits'][user] -= self.credits
-            json_data = json.dumps(data)
-            json_file.write(json_data)    
+                if cur.rowcount == 0:
+                    logging.warning("User wagered " + str(self.credits) + " but was not found in database.")
+                    return
+
+                conn.commit()
         
         return True
     
-    def retrieve_data_and_credits(self):
-        with open(CREDITS_FILE, 'r') as json_file:
-            data = json.load(json_file)
-            user = str(self.ctx.author.id)
-            user_credits = data['credits'].get(user, 0)
+    async def send_credit_updates(self):
+        _, user_credits = self.extract_user()
+        await self.ctx.send("You now have " + str(user_credits) + " credits.") 
+    
+    def extract_user(self):
+        user = self.ctx.author.id
         
-        return user, user_credits, data  
+        with psycopg.connect(POSTGRES) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM credits WHERE user_id = %s",
+                    (user,)
+                )
+                extracted_user = cur.fetchone()
+            
+                if not extracted_user:
+                    return user, 0
+                else:
+                    return user, extracted_user[2]
     
     def hand_total(self, hand):
         curr_total = 0
