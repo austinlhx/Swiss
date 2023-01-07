@@ -1,6 +1,8 @@
 from deck_of_cards import deck_of_cards
 
-import json, os, psycopg, logging
+import json, os, psycopg, logging, discord, asyncio
+from discord.ui import Button, View
+from blackjack_view import BlackjackView
 
 POSTGRES = os.environ["DATABASE_URL"]
 CREDITS_FILE = 'credits.json'
@@ -16,6 +18,7 @@ class Blackjack():
         self.dealer_cards = []
         self.can_double = True
         self.doubled = False
+        self.view = None
 
     async def start_game(self):
         user_first_card = self.deck.deck.pop(0)
@@ -49,10 +52,17 @@ class Blackjack():
             await self.double_credits()
             return True
         
-        await self.ctx.send("You have " + str(user_total))
-        await self.ctx.send("Dealer shows a " + str(hidden_card_value))
-        
-        await self.ctx.send("Would you like to hit, stand, or double?")
+        user_hand = [card.name for card in self.user_cards]
+        user_hand_str = ', '.join(user_hand)
+        user_hand_str += " | Total: " + str(self.hand_total(self.user_cards))
+
+        dealer_hand_str = "Hidden, " + str(up_card.name) + " | Total: " + str(up_card_value)
+        embed_message = discord.Embed(title="Blackjack")
+        embed_message.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
+        embed_message.add_field(name="Your Hand", value=user_hand_str, inline=False)
+        embed_message.add_field(name="Dealer", value=dealer_hand_str, inline=False)
+        self.view = BlackjackView(self.ctx, embed_message, self)
+        await self.ctx.send(embed=embed_message, view= self.view)
         return False
     
     async def double_credits(self):
@@ -70,8 +80,6 @@ class Blackjack():
                     return
 
                 conn.commit()
-        
-        await self.send_credit_updates() 
     
     async def push_credits(self):
         user = self.ctx.author.id
@@ -87,8 +95,6 @@ class Blackjack():
                     return
 
                 conn.commit()
-
-        await self.send_credit_updates() 
     
     async def wager_credits(self):
         user, user_credits = self.extract_user()
@@ -114,9 +120,6 @@ class Blackjack():
         
         return True
     
-    async def send_credit_updates(self):
-        _, user_credits = self.extract_user()
-        await self.ctx.send("You now have " + str(user_credits) + " credits.") 
     
     def extract_user(self):
         user = self.ctx.author.id

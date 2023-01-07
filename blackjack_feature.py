@@ -1,10 +1,11 @@
 from blackjack import Blackjack, POSTGRES
+from blackjack_view import CACHE
 import discord
 from discord.ext import commands, tasks
 
 import datetime, psycopg
 
-CACHE = {}
+
 DAILY_CLAIMS = {}
 
 def add_blackjack_feature(client): 
@@ -30,7 +31,8 @@ def add_blackjack_feature(client):
         
 
         if CACHE.get(ctx.author):
-            await ctx.send("You are already in an on going game. Please hit or stand.")
+            await ctx.send("You are already in an on going game. Here is your on-going game:")
+            await ctx.send(embed=CACHE[ctx.author].view.embed, view=CACHE[ctx.author].view)
             return
 
         credits_available = await new_game.wager_credits()
@@ -127,86 +129,6 @@ def add_blackjack_feature(client):
                     await ctx.send("You currently have 0 credits.")
                 else:
                     await ctx.send("You currently have " + str(extracted_user[2]) + " credits.")
-        
-    @client.command()
-    async def hit(ctx):
-        if not CACHE.get(ctx.author):
-            await ctx.send("You are not currently in an active game, please enter command $blackjack {wager_amount} to start game.")
-            return
-
-        curr_game = CACHE[ctx.author]
-        curr_game.can_double = False
-
-        new_card = curr_game.deck.deck.pop(0)
-        curr_game.user_cards.append(new_card)
-
-        curr_total = curr_game.hand_total(curr_game.user_cards)
-        
-        if curr_total == 21:
-            await ctx.send("You now have 21")
-            await stand(ctx)
-        elif curr_total < 21:
-            await ctx.send("You now have " + str(curr_total))
-            if curr_game.doubled:
-                await stand(ctx)
-        else:
-            await ctx.send("You now have " + str(curr_total))
-            await ctx.send("Player busts.")
-            del CACHE[ctx.author]
-    
-    @client.command()
-    async def double(ctx):
-        if not CACHE.get(ctx.author):
-            await ctx.send("You are not currently in an active game, please enter command $blackjack {wager_amount} to start game.")
-            return
-
-        curr_game = CACHE[ctx.author]
-        
-        if not curr_game.can_double:
-            await ctx.send("You can only double on first hit.")
-            return
-
-        curr_game.doubled = True
-        credits_available = await curr_game.wager_credits() 
-        if not credits_available:
-            curr_game.doubled = False
-            return
-
-        curr_game.credits *= 2
-        
-        await hit(ctx)
-    
-    @client.command()
-    async def stand(ctx):
-        if not CACHE.get(ctx.author):
-            await ctx.send("You are not currently in an active game, please enter command $blackjack {wager_amount} to start game.")
-            return
-        
-        curr_game = CACHE[ctx.author]
-
-        curr_total = curr_game.hand_total(curr_game.dealer_cards)
-        await ctx.send("Dealer reveals a " + str(curr_total))
-        while curr_total <= 16:
-            new_card = curr_game.deck.deck.pop(0)
-            curr_game.dealer_cards.append(new_card)
-            curr_total = curr_game.hand_total(curr_game.dealer_cards)
-            await ctx.send("Dealer now has " + str(curr_total))
-        
-        user_total = curr_game.hand_total(curr_game.user_cards)
-
-        if curr_total > 21:
-            await curr_game.double_credits()
-            await ctx.send("Dealer busts, player wins. Congratulations!")
-        elif curr_total <= 21 and curr_total > user_total:
-            await ctx.send("Dealer wins.")
-        elif curr_total <= 21 and curr_total < user_total:
-            await curr_game.double_credits()
-            await ctx.send("Player wins " + str(curr_game.credits) + " credits, congratulations!")
-        else:
-            await curr_game.push_credits()
-            await ctx.send("Player pushes.")
-        
-        del CACHE[ctx.author]
     
 def create_credit_table():
     with psycopg.connect(POSTGRES) as conn:

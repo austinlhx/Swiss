@@ -8,7 +8,7 @@ from googleapiclient.errors import HttpError
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 ROSTER_SPREADSHEET_ID = "1ODzv8_SvVdeMWoHXGIbU50v7yeVz9Gvtn0K7TNTKGes"
-RANGE_NAME = 'Contact!A3:M62'
+RANGE_NAME = 'Contact!A2:M62'
 
 def pull_sheet_data():
     contact_data = {}
