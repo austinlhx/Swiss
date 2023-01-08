@@ -100,6 +100,7 @@ class BlackjackView(View):
         logging.error("Error occured " + error + " from this " + interaction)
         del CACHE[self.ctx.author]
         await self.blackjack.push_credits()
+        await interaction.response.send_message("Something weird happened, your credits have been returned. Please start a new game.", ephemeral=True)
 
     
     async def conclude_game(self, interaction):

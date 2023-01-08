@@ -5,6 +5,8 @@ from discord.ext import commands, tasks
 
 import datetime, psycopg
 
+GAMBLING_CHANNEL = 1047620089496744020
+BOT_TESTING = 1060934072832102450
 
 DAILY_CLAIMS = {}
 
@@ -14,6 +16,8 @@ def add_blackjack_feature(client):
 
     @client.command(name='blackjack', aliases=['bj'])
     async def blackjack(ctx, *args):
+        if ctx.channel.id != GAMBLING_CHANNEL and ctx.channel.id != BOT_TESTING:
+            return 
         if len(args) > 1 or len(args) == 0:
             await ctx.send("Please re-enter command $blackjack {wager_amount}")
             return
