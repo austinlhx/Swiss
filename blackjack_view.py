@@ -75,13 +75,14 @@ class BlackjackView(View):
         user_total = self.blackjack.hand_total(self.blackjack.user_cards)
 
         if curr_total > 21 or (curr_total <= 21 and curr_total < user_total):
-            await self.blackjack.double_credits()
+            credits_won = self.blackjack.credits*2
+            self.blackjack.multiplied_credits(credits_won)
             win_msg = "Player wins " + str(self.blackjack.credits)
             self.embed.add_field(name="Results", value=win_msg, inline=False)
         elif curr_total <= 21 and curr_total > user_total:
             self.embed.add_field(name="Results", value="Dealer wins.", inline=False)
         else:
-            await self.blackjack.push_credits()
+            self.blackjack.multiplied_credits(self.blackjack.credits)
             self.embed.add_field(name="Results", value="Player pushes.", inline=False)
 
         await self.conclude_game(interaction)
@@ -96,10 +97,10 @@ class BlackjackView(View):
         
         return True
     
-    async def on_error(self, interaction, error):
-        logging.error("Error occured " + error + " from this " + interaction)
+    async def on_error(self, interaction, error, item):
+        logging.error("Error occured " + str(error) + " from this " + str(interaction))
         del CACHE[self.ctx.author]
-        await self.blackjack.push_credits()
+        self.blackjack.multiplied_credits(self.blackjack.credits)
         await interaction.response.send_message("Something weird happened, your credits have been returned. Please start a new game.", ephemeral=True)
 
     

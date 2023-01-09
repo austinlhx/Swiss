@@ -1,4 +1,5 @@
 from deck_of_cards import deck_of_cards
+from casino import Casino
 
 import json, os, psycopg, logging, discord, asyncio
 from discord.ui import Button, View
@@ -7,11 +8,9 @@ from blackjack_view import BlackjackView
 POSTGRES = os.environ["DATABASE_URL"]
 CREDITS_FILE = 'credits.json'
 
-class Blackjack():
+class Blackjack(Casino):
     def __init__(self, credits, client, ctx): 
-        self.credits = credits
-        self.client = client
-        self.ctx = ctx
+        super().__init__(credits, client, ctx)
         self.deck = deck_of_cards.DeckOfCards()
         self.deck.shuffle_deck()
         self.user_cards = []
@@ -34,12 +33,11 @@ class Blackjack():
 
         user_first_card_value, user_second_card_value = self.card_value(user_first_card), self.card_value(user_second_card)
 
-        user_total = user_first_card_value + user_second_card_value
         hidden_card_value, up_card_value = self.card_value(hidden_card), self.card_value(up_card)
 
         if ((hidden_card_value == 1 and up_card_value + 11 == 21) or (up_card_value == 1 and hidden_card_value + 11 == 21)) and ((user_first_card_value == 1 and user_second_card_value + 11 == 21) or (user_second_card_value == 1 and user_first_card_value + 11 == 21)):
             await self.ctx.send("Both Players have Blackjack, Player pushes.")
-            await self.push_credits()
+            self.multiplied_credits(self.credits)
             return True
 
 
@@ -49,7 +47,8 @@ class Blackjack():
 
         elif (user_first_card_value == 1 and user_second_card_value + 11 == 21) or (user_second_card_value == 1 and user_first_card_value + 11 == 21):
             await self.ctx.send("You have Blackjack, Congratulations!")
-            await self.double_credits()
+            credits_won = self.credits*2
+            self.multiplied_credits(credits_won)
             return True
         
         user_hand = [card.name for card in self.user_cards]
@@ -64,78 +63,6 @@ class Blackjack():
         self.view = BlackjackView(self.ctx, embed_message, self)
         await self.ctx.send(embed=embed_message, view= self.view)
         return False
-    
-    async def double_credits(self):
-        user_id = self.ctx.author.id
-
-        with psycopg.connect(POSTGRES) as conn:
-            with conn.cursor() as cur:
-                credits_won = self.credits * 2
-                cur.execute(
-                    "UPDATE credits SET credit = credit + %s WHERE user_id = %s",
-                    (credits_won, user_id)
-                )
-                if cur.rowcount == 0:
-                    logging.warning("User won " + str(self.credits * 2) + " but was not found in database.")
-                    return
-
-                conn.commit()
-    
-    async def push_credits(self):
-        user = self.ctx.author.id
-
-        with psycopg.connect(POSTGRES) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE credits SET credit = credit + %s WHERE user_id = %s",
-                    (self.credits, user)
-                )
-                if cur.rowcount == 0:
-                    logging.warning("User won " + str(self.credits) + " but was not found in database.")
-                    return
-
-                conn.commit()
-    
-    async def wager_credits(self):
-        user, user_credits = self.extract_user()
-        if self.credits > user_credits:
-            if self.doubled:
-                await self.ctx.send("You do not have enough to double. You only have " + str(user_credits) + " credits remaining.")
-            else:
-                await self.ctx.send("You do not have sufficient credits, you have " + str(user_credits) + " credits.")  
-            return False
-        
-        with psycopg.connect(POSTGRES) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE credits SET credit = credit - %s WHERE user_id = %s",
-                    (self.credits, user)
-                )
-
-                if cur.rowcount == 0:
-                    logging.warning("User wagered " + str(self.credits) + " but was not found in database.")
-                    return
-
-                conn.commit()
-        
-        return True
-    
-    
-    def extract_user(self):
-        user = self.ctx.author.id
-        
-        with psycopg.connect(POSTGRES) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT * FROM credits WHERE user_id = %s",
-                    (user,)
-                )
-                extracted_user = cur.fetchone()
-            
-                if not extracted_user:
-                    return user, 0
-                else:
-                    return user, extracted_user[2]
     
     def hand_total(self, hand):
         curr_total = 0
