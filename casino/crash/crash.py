@@ -1,6 +1,6 @@
 from discord import Embed, Color
-from crash_view import CrashView
-from casino import Casino
+from casino.crash.crash_view import CrashView
+from casino.casino import Casino
 import random, asyncio, os, psycopg, logging
 
 POSTGRES = os.environ["DATABASE_URL"]

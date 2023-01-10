@@ -1,9 +1,9 @@
 from deck_of_cards import deck_of_cards
-from casino import Casino
+from casino.casino import Casino
 
 import json, os, psycopg, logging, discord, asyncio
 from discord.ui import Button, View
-from blackjack_view import BlackjackView
+from casino.blackjack.blackjack_view import BlackjackView
 
 POSTGRES = os.environ["DATABASE_URL"]
 CREDITS_FILE = 'credits.json'

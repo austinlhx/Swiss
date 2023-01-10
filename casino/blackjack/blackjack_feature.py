@@ -1,5 +1,5 @@
-from blackjack import Blackjack, POSTGRES
-from blackjack_view import CACHE
+from casino.blackjack.blackjack import Blackjack, POSTGRES
+from casino.blackjack.blackjack_view import CACHE
 
 GAMBLING_CHANNEL = 1047620089496744020
 BOT_TESTING = 1060934072832102450

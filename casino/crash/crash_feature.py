@@ -1,5 +1,5 @@
 import discord
-from crash import Crash
+from casino.crash.crash import Crash
 
 GAMBLING_CHANNEL = 1047620089496744020
 BOT_TESTING = 1060934072832102450

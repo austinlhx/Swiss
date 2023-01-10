@@ -1,6 +1,6 @@
-from blackjack_feature import add_blackjack_feature
-from crash_feature import add_crash_feature
-from blackjack import POSTGRES
+from casino.blackjack.blackjack_feature import add_blackjack_feature
+from casino.crash.crash_feature import add_crash_feature
+from casino.blackjack.blackjack import POSTGRES
 from discord.ext import commands, tasks
 from discord import Embed, Color
 import datetime, psycopg
