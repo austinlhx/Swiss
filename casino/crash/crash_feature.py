@@ -24,9 +24,11 @@ def add_crash_feature(client):
             await ctx.send("Please enter a value >10 for this game")
             return
         
-        new_game = Crash(credits_bet, ctx.author, ctx)
+        player = ctx.author
 
-        credits_available = await new_game.wager_credits()
+        new_game = Crash(credits_bet, player, ctx)
+
+        credits_available = await new_game.wager_credits(player.id)
 
         if not credits_available:
             return

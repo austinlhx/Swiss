@@ -37,7 +37,7 @@ class Blackjack(Casino):
 
         if ((hidden_card_value == 1 and up_card_value + 11 == 21) or (up_card_value == 1 and hidden_card_value + 11 == 21)) and ((user_first_card_value == 1 and user_second_card_value + 11 == 21) or (user_second_card_value == 1 and user_first_card_value + 11 == 21)):
             await self.ctx.send("Both Players have Blackjack, Player pushes.")
-            self.multiplied_credits(self.credits)
+            self.multiplied_credits(self.ctx.author.id, self.credits)
             return True
 
 
@@ -48,7 +48,7 @@ class Blackjack(Casino):
         elif (user_first_card_value == 1 and user_second_card_value + 11 == 21) or (user_second_card_value == 1 and user_first_card_value + 11 == 21):
             await self.ctx.send("You have Blackjack, Congratulations!")
             credits_won = self.credits*2
-            self.multiplied_credits(credits_won)
+            self.multiplied_credits(self.ctx.author.id, credits_won)
             return True
         
         user_hand = [card.name for card in self.user_cards]
@@ -60,8 +60,9 @@ class Blackjack(Casino):
         embed_message.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
         embed_message.add_field(name="Your Hand", value=user_hand_str, inline=False)
         embed_message.add_field(name="Dealer", value=dealer_hand_str, inline=False)
+        embed_message.color = discord.Color.blue()
         self.view = BlackjackView(self.ctx, embed_message, self)
-        await self.ctx.send(embed=embed_message, view= self.view)
+        self.view.msg = await self.ctx.send(embed=embed_message, view= self.view)
         return False
     
     def hand_total(self, hand):

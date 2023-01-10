@@ -3,9 +3,9 @@ from discord.utils import get
 from discord.ext import commands
 import os, logging
 
-from trophy_feature import add_trophy_feature
-from user_info_feature import add_user_info_feature
-from misc_feature import add_misc_features
+from features.trophy_feature import add_trophy_feature
+from features.user_info_feature import add_user_info_feature
+from features.misc_feature import add_misc_features
 from casino.gambling import add_gambling_features
 
 DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]

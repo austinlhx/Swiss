@@ -43,13 +43,13 @@ class Crash(Casino):
             await asyncio.sleep(1)
         if self.cashed_out:
             credits_won = int(self.credits * self.current_multiplier)
-            self.multiplied_credits(credits_won)
+            self.multiplied_credits(self.ctx.author.id, credits_won)
         else:
             await self.crashed_view()
         
     async def crashed_view(self):
         lost_str = "CRASHED! Lost: " + str(self.credits) + " credits"
         self.view.embed.add_field(name="Results: ", value=lost_str, inline=False)
-        self.view.embed.set_image(url="https://j.gifs.com/mGDBk1.gif")
+        self.view.embed.set_image(url="https://media.tenor.com/-g-Um3DDvV0AAAAM/explosion.gif")
         self.view.embed.color = Color.red()
         await self.msg.edit(embed=self.view.embed, view=None)

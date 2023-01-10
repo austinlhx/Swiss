@@ -3,7 +3,7 @@ from discord.ui import Button, View
 
 class CrashView(View):
     def __init__(self, ctx, embed, crash):
-        super().__init__()
+        super().__init__(timeout=None)
         self.ctx = ctx
         self.embed = embed
         self.crash = crash
@@ -26,5 +26,5 @@ class CrashView(View):
 
     async def on_error(self, interaction, error, item):
         logging.error("Error occured " + str(error) + " from this " + str(interaction))
-        self.crash.multiplied_credits(self.crash.credits)
+        self.crash.multiplied_credits(self.ctx.author.id, self.crash.credits)
         await interaction.response.send_message("Something weird happened, your credits have been returned. Please start a new game.", ephemeral=True)

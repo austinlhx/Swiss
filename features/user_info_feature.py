@@ -2,7 +2,7 @@ import discord, asyncio
 
 from discord.utils import get
 from discord.ext import commands, tasks
-from spreadsheet_extract import pull_sheet_data
+from features.spreadsheet_extract import pull_sheet_data
 from datetime import date, datetime
 
 CHANNEL_ID = 1047618947761061898

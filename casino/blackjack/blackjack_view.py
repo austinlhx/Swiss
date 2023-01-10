@@ -9,6 +9,8 @@ class BlackjackView(View):
         self.ctx = ctx
         self.embed = embed
         self.blackjack = blackjack
+        self.msg = None
+        self.ended = False
     
 
     @discord.ui.button(label="Hit",style=discord.ButtonStyle.success)
@@ -26,7 +28,8 @@ class BlackjackView(View):
     @discord.ui.button(label="Double",style=discord.ButtonStyle.primary, custom_id="double")
     async def double_command(self, interaction, button):
         self.blackjack.doubled = True
-        credits_available = await self.blackjack.wager_credits() 
+        user_id = self.ctx.author.id
+        credits_available = await self.blackjack.wager_credits(user_id) 
         if not credits_available:
             self.blackjack.doubled = False
             return
@@ -61,6 +64,10 @@ class BlackjackView(View):
             await self.conclude_game(interaction)
     
     async def stand(self, interaction):
+        await self.stand_game()
+        await self.conclude_game(interaction)
+    
+    async def stand_game(self):
         curr_total = self.blackjack.hand_total(self.blackjack.dealer_cards)
         while curr_total <= 16:
             new_card = self.blackjack.deck.deck.pop(0)
@@ -76,20 +83,22 @@ class BlackjackView(View):
 
         if curr_total > 21 or (curr_total <= 21 and curr_total < user_total):
             credits_won = self.blackjack.credits*2
-            self.blackjack.multiplied_credits(credits_won)
+            self.blackjack.multiplied_credits(self.ctx.author.id, credits_won)
             win_msg = "Player wins " + str(self.blackjack.credits)
             self.embed.add_field(name="Results", value=win_msg, inline=False)
+            self.embed.color = discord.Color.green()
         elif curr_total <= 21 and curr_total > user_total:
             self.embed.add_field(name="Results", value="Dealer wins.", inline=False)
+            self.embed.color = discord.Color.red()
         else:
-            self.blackjack.multiplied_credits(self.blackjack.credits)
+            self.blackjack.multiplied_credits(self.ctx.author.id, self.blackjack.credits)
             self.embed.add_field(name="Results", value="Player pushes.", inline=False)
-
-        await self.conclude_game(interaction)
+            self.embed.color = discord.Color.yellow()
+        self.ended = True
     
     async def interaction_check(self, interaction):
         if self.ctx.author != interaction.user:
-            await interaction.response.send_message("This is not your game, you fucking bitch!", ephemeral=True)
+            await interaction.response.send_message("This is not your game!", ephemeral=True)
             return False
         elif not CACHE.get(self.ctx.author):
             await interaction.response.send_message("This game has already concluded.", ephemeral=True)
@@ -100,16 +109,24 @@ class BlackjackView(View):
     async def on_error(self, interaction, error, item):
         logging.error("Error occured " + str(error) + " from this " + str(interaction))
         del CACHE[self.ctx.author]
-        self.blackjack.multiplied_credits(self.blackjack.credits)
+        self.blackjack.multiplied_credits(self.ctx.author.id, self.blackjack.credits)
         await interaction.response.send_message("Something weird happened, your credits have been returned. Please start a new game.", ephemeral=True)
 
     
     async def conclude_game(self, interaction):
-        for child in self.children:
-            child.disabled = True
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        self.ended = True
+        await interaction.response.edit_message(embed=self.embed, view=None)
         
-        del CACHE[self.ctx.author]
-
-        _, user_credits = self.blackjack.extract_user()
+        user = self.ctx.author
+        del CACHE[user]
+        
+        user_credits = self.blackjack.extract_user_credits(user.id)
         await self.ctx.send("You now have " + str(user_credits) + " credits.") 
+    
+    async def on_timeout(self):
+        if not self.ended:
+            await self.ctx.send("User took too long to respond, game has been stood automatically.")
+            await self.stand_game()
+            await self.msg.edit(embed=self.embed, view=None)
+            user = self.ctx.author
+            del CACHE[user]
