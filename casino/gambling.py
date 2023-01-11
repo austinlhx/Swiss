@@ -1,6 +1,7 @@
 from casino.blackjack.blackjack_feature import add_blackjack_feature
 from casino.crash.crash_feature import add_crash_feature
 from casino.battle.battle_feature import add_battle_feature
+from casino.roulette.roulette_feature import add_roulette_feature
 from casino.blackjack.blackjack import POSTGRES
 from discord.ext import commands, tasks
 from discord import Embed, Color
@@ -12,6 +13,7 @@ def add_gambling_features(client):
     create_credit_table()
 
     add_blackjack_feature(client)
+    add_roulette_feature(client)
     add_crash_feature(client)
     add_battle_feature(client)
 
@@ -141,6 +143,7 @@ def add_gambling_features(client):
     async def commands(ctx):
         embed = Embed(title="Command List", color=Color.blue())
         embed.add_field(name="Blackjack", value="$blackjack {wager_amount}", inline=False)
+        embed.add_field(name="Roulette", value="$roulette {wager_amount}", inline=False)
         embed.add_field(name="Crash", value="$crash {wager_amount}", inline=False)
         embed.add_field(name="Battle", value="$battle @{user} {wager_amount}", inline=False)
         embed.add_field(name="Leaderboard", value="$leaderboard", inline=False)
