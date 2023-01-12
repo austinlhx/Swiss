@@ -29,7 +29,6 @@ class RouletteView(View):
     
     async def spin_wheel(self, interaction, color):
         self.started = True
-        await self.roulette.wager_credits(self.ctx.author.id)
         await interaction.response.edit_message(embed=self.embed, view=None)
         await self.spin_wheel_animation()
         self.ended = True

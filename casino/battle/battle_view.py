@@ -13,7 +13,7 @@ class BattleView(View):
         self.msg = None
         self.ended = False
     
-    @button(label="Accept",style=ButtonStyle.success)
+    @button(label="👍",style=ButtonStyle.success)
     async def accept(self, interaction, button):
         self.embed.add_field(name="Results: ", value="Player has accepted the game. Battle commences in 3 seconds.", inline=False)
         self.embed.color = Color.blue()
@@ -27,7 +27,7 @@ class BattleView(View):
         
 
 
-    @button(label="Decline",style=ButtonStyle.danger)
+    @button(label="👎",style=ButtonStyle.danger)
     async def decline(self, interaction, button):
         self.embed.add_field(name="Results: ", value="Player has declined the game", inline=False)
         self.embed.color = Color.yellow()
