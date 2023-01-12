@@ -10,7 +10,7 @@ import datetime, psycopg
 
 DAILY_CLAIMS = {}
 
-def add_gambling_features(client):
+def add_gambling_features(client, redis_client):
     create_credit_table()
 
     add_blackjack_feature(client)
@@ -22,14 +22,15 @@ def add_gambling_features(client):
     @client.command()
     async def daily(ctx):
         user = str(ctx.author.id)
-            
-        if DAILY_CLAIMS.get(user):
-            await ctx.send("You already have claimed todays daily, please try again on " + str(DAILY_CLAIMS[user]))
+        daily_str = user + ".daily"
+        if redis_client.get(daily_str):
+            expiry_date_sec = redis_client.ttl(daily_str)
+            expiry_date_hr = str(datetime.timedelta(seconds=expiry_date_sec))
+            await ctx.send("You already have claimed todays daily, please try again in " + expiry_date_hr + " hrs.")
             return
-
-        curr_time = datetime.datetime.now()
-        tomorrow = curr_time + datetime.timedelta(days=1)
-        DAILY_CLAIMS[user] = tomorrow
+        
+        day_seconds = 86400
+        redis_client.set(daily_str, 1, ex=day_seconds)
 
         with psycopg.connect(POSTGRES) as conn:
             with conn.cursor() as cur:
@@ -58,13 +59,13 @@ def add_gambling_features(client):
 
         await ctx.send("Credits acquired, you now have " + str(credit_count) + " credits.")
     
-    @tasks.loop(minutes=1)
-    async def daily_deletion():
-        curr_time = datetime.datetime.now()
-        for user, time in DAILY_CLAIMS:
-            if curr_time >= time:
-                del DAILY_CLAIMS[user]
-                break
+    # @tasks.loop(minutes=1)
+    # async def daily_deletion():
+    #     curr_time = datetime.datetime.now()
+    #     for user, time in DAILY_CLAIMS:
+    #         if curr_time >= time:
+    #             del DAILY_CLAIMS[user]
+    #             break
     
     @client.command()
     async def leaderboard(ctx):
