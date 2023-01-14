@@ -19,7 +19,7 @@ class CrashView(View):
     
     async def interaction_check(self, interaction):
         if self.ctx.author != interaction.user:
-            await interaction.response.send_message("This is not your game, you fucking bitch!", ephemeral=True)
+            await interaction.response.send_message("This is not your game!", ephemeral=True)
             return False
         
         return True

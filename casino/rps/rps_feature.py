@@ -7,8 +7,8 @@ def add_rps_feature(client):
 
     @client.command()
     async def rps(ctx, *args):
-        # if ctx.channel.id != GAMBLING_CHANNEL and ctx.channel.id != BOT_TESTING:
-        #     return 
+        if ctx.channel.id != GAMBLING_CHANNEL and ctx.channel.id != BOT_TESTING:
+            return 
 
         if len(args) != 2:
             await ctx.send("Please re-enter command $rps  @{user} {wager_amount}")

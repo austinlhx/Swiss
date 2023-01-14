@@ -18,7 +18,7 @@ class Crash(Casino):
         embed_msg = Embed(title="Crash", color=Color.blue())
         embed_msg.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
 
-        embed_msg.add_field(name="Your Bet: ", value=str(self.credits) + " credits", inline=False)
+        embed_msg.add_field(name="Wager:", value=str(self.credits) + " credits", inline=False)
         embed_msg.add_field(name="Current Multiplier: ", value= "x" + str(self.current_multiplier), inline=False)
         embed_msg.set_image(url="https://media4.giphy.com/media/JmUd8L6SMdTrriXSEc/giphy.gif?cid=ecf05e47knq7hlosyhuyy5t6calld7yh0xtvnywtdc4o1h1h&rid=giphy.gif&ct=g")
 

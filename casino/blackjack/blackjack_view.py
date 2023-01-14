@@ -48,7 +48,7 @@ class BlackjackView(View):
         card_emojis = [card.emoji for card in self.blackjack.user_cards]
         card_value = ' '.join(card_emojis)
         card_value += " | Total: " + str(self.blackjack.hand_total(self.blackjack.user_cards))
-        self.embed.set_field_at(index=0, name="Your Hand", value= card_value)
+        self.embed.set_field_at(index=1, name="Your Hand", value= card_value)
 
         curr_total = self.blackjack.hand_total(self.blackjack.user_cards)
 
@@ -61,6 +61,7 @@ class BlackjackView(View):
                 await interaction.response.edit_message(embed=self.embed, view=self)
         else:
             self.embed.add_field(name="Results", value="Player busts.", inline=False)
+            self.embed.color = discord.Color.red()
             await self.conclude_game(interaction)
     
     async def stand(self, interaction):
@@ -77,7 +78,7 @@ class BlackjackView(View):
         card_emojis = [card.emoji for card in self.blackjack.dealer_cards]
         card_value = ' '.join(card_emojis)
         card_value += " | Total: " + str(self.blackjack.hand_total(self.blackjack.dealer_cards))
-        self.embed.set_field_at(index=1, name="Dealer", value=card_value)
+        self.embed.set_field_at(index=2, name="Dealer", value=card_value)
 
         user_total = self.blackjack.hand_total(self.blackjack.user_cards)
 

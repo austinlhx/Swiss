@@ -17,6 +17,7 @@ class RPS(Casino):
     async def start_game(self):
         embed_msg = Embed(title="Rock Paper Scissors", color=Color.blue())
         embed_msg.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
+        embed_msg.add_field(name="Wager:", value=str(self.credits) + " credits", inline=False)
         embed_msg.add_field(name="Players:", value=self.ctx.author.name + " vs " + self.challenger.name, inline=False)
 
         challenge_str = f"{self.challenger.mention}, you have been challenged to a RPS game from {self.ctx.author.mention}. Do you accept or decline?"

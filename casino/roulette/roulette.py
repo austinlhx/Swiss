@@ -18,7 +18,7 @@ class Roulette(Casino):
         embed_msg = Embed(title="Roulette", color=Color.blue())
         embed_msg.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
 
-        embed_msg.add_field(name="Your Bet: ", value=str(self.credits) + " credits", inline=False)
+        embed_msg.add_field(name="Your Bet:", value=str(self.credits) + " credits", inline=False)
         embed_msg.add_field(name="Picked Color: ", value="Awaiting user decision.", inline=False)
         embed_msg.add_field(name="Current Color: ", value= "🔴", inline=False)
 

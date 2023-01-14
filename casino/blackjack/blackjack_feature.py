@@ -8,8 +8,8 @@ def add_blackjack_feature(client):
 
     @client.command(name='blackjack', aliases=['bj'])
     async def blackjack(ctx, *args):
-        # if ctx.channel.id != GAMBLING_CHANNEL and ctx.channel.id != BOT_TESTING:
-        #     return 
+        if ctx.channel.id != GAMBLING_CHANNEL and ctx.channel.id != BOT_TESTING:
+            return 
         if len(args) > 1 or len(args) == 0:
             await ctx.send("Please re-enter command $blackjack {wager_amount}")
             return

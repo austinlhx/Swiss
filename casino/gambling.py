@@ -18,14 +18,6 @@ def add_gambling_features(client, redis_client):
     add_rps_feature(client)
 
     @client.command()
-    async def test(ctx):
-        # emoji = client.get_emoji(894628149730623528)
-        emed = Embed(title="test")
-        emed.add_field(name="<:2_:1063363932292657222>", value="<:2_:1063363932292657222>")
-        await ctx.send(embed=emed)
-
-
-    @client.command()
     async def daily(ctx):
         user = str(ctx.author.id)
         daily_str = user + ".daily"
