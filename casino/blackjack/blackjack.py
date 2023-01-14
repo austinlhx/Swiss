@@ -1,18 +1,17 @@
 from deck_of_cards import deck_of_cards
 from casino.casino import Casino
+from casino.blackjack.deck.deck import CardDeck
 
-import json, os, psycopg, logging, discord, asyncio
-from discord.ui import Button, View
+import os, logging, discord, asyncio
 from casino.blackjack.blackjack_view import BlackjackView
 
 POSTGRES = os.environ["DATABASE_URL"]
-CREDITS_FILE = 'credits.json'
 
 class Blackjack(Casino):
     def __init__(self, credits, client, ctx): 
         super().__init__(credits, client, ctx)
-        self.deck = deck_of_cards.DeckOfCards()
-        self.deck.shuffle_deck()
+        self.deck = CardDeck()
+        self.deck.shuffle()
         self.user_cards = []
         self.dealer_cards = []
         self.can_double = True
@@ -51,11 +50,11 @@ class Blackjack(Casino):
             self.multiplied_credits(self.ctx.author.id, credits_won)
             return True
         
-        user_hand = [card.name for card in self.user_cards]
-        user_hand_str = ', '.join(user_hand)
+        user_hand = [card.emoji for card in self.user_cards]
+        user_hand_str = ' '.join(user_hand)
         user_hand_str += " | Total: " + str(self.hand_total(self.user_cards))
 
-        dealer_hand_str = "Hidden, " + str(up_card.name) + " | Total: " + str(up_card_value)
+        dealer_hand_str = self.deck.hidden + " " + up_card.emoji + " | Total: " + str(up_card_value)
         embed_message = discord.Embed(title="Blackjack")
         embed_message.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar)
         embed_message.add_field(name="Your Hand", value=user_hand_str, inline=False)
@@ -64,6 +63,9 @@ class Blackjack(Casino):
         self.view = BlackjackView(self.ctx, embed_message, self)
         self.view.msg = await self.ctx.send(embed=embed_message, view= self.view)
         return False
+    
+    def draw_cards(self):
+        pass
     
     def hand_total(self, hand):
         curr_total = 0

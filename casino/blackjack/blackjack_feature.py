@@ -4,8 +4,6 @@ from casino.blackjack.blackjack_view import CACHE
 GAMBLING_CHANNEL = 1047620089496744020
 BOT_TESTING = 1060934072832102450
 
-DAILY_CLAIMS = {}
-
 def add_blackjack_feature(client): 
 
     @client.command(name='blackjack', aliases=['bj'])

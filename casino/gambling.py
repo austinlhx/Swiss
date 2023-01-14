@@ -8,8 +8,6 @@ from discord.ext import commands, tasks
 from discord import Embed, Color
 import datetime, psycopg
 
-DAILY_CLAIMS = {}
-
 def add_gambling_features(client, redis_client):
     create_credit_table()
 
@@ -18,6 +16,14 @@ def add_gambling_features(client, redis_client):
     add_crash_feature(client)
     add_battle_feature(client)
     add_rps_feature(client)
+
+    @client.command()
+    async def test(ctx):
+        # emoji = client.get_emoji(894628149730623528)
+        emed = Embed(title="test")
+        emed.add_field(name="<:2_:1063363932292657222>", value="<:2_:1063363932292657222>")
+        await ctx.send(embed=emed)
+
 
     @client.command()
     async def daily(ctx):
@@ -58,14 +64,6 @@ def add_gambling_features(client, redis_client):
             conn.commit()
 
         await ctx.send("Credits acquired, you now have " + str(credit_count) + " credits.")
-    
-    # @tasks.loop(minutes=1)
-    # async def daily_deletion():
-    #     curr_time = datetime.datetime.now()
-    #     for user, time in DAILY_CLAIMS:
-    #         if curr_time >= time:
-    #             del DAILY_CLAIMS[user]
-    #             break
     
     @client.command()
     async def leaderboard(ctx):

@@ -45,8 +45,8 @@ class BlackjackView(View):
                 child.disabled = True
         new_card = self.blackjack.deck.deck.pop(0)
         self.blackjack.user_cards.append(new_card)
-        card_names = [card.name for card in self.blackjack.user_cards]
-        card_value = ', '.join(card_names)
+        card_emojis = [card.emoji for card in self.blackjack.user_cards]
+        card_value = ' '.join(card_emojis)
         card_value += " | Total: " + str(self.blackjack.hand_total(self.blackjack.user_cards))
         self.embed.set_field_at(index=0, name="Your Hand", value= card_value)
 
@@ -74,10 +74,10 @@ class BlackjackView(View):
             self.blackjack.dealer_cards.append(new_card)
             curr_total = self.blackjack.hand_total(self.blackjack.dealer_cards)
 
-        card_names = [card.name for card in self.blackjack.dealer_cards]
-        card_value = ', '.join(card_names)
+        card_emojis = [card.emoji for card in self.blackjack.dealer_cards]
+        card_value = ' '.join(card_emojis)
         card_value += " | Total: " + str(self.blackjack.hand_total(self.blackjack.dealer_cards))
-        self.embed.set_field_at(index=1, name="Dealer", value= card_value)
+        self.embed.set_field_at(index=1, name="Dealer", value=card_value)
 
         user_total = self.blackjack.hand_total(self.blackjack.user_cards)
 
