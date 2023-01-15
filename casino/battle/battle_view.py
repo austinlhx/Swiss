@@ -1,7 +1,7 @@
 from discord.ui import View, button
 from discord import ButtonStyle, Color
 
-import asyncio, random
+import asyncio, random, logging
 
 class BattleView(View):
     def __init__(self, ctx, embed, battle, challenger):
@@ -76,6 +76,7 @@ class BattleView(View):
         await self.msg.edit(embed=self.embed, view=None)
     
     async def on_error(self, interaction, error, item):
+        logging.error("Error occured " + str(error) + " from this " + str(interaction))
         await interaction.response.send_message("An error has occured! Please request another game.", ephemeral=True)
     
     async def on_timeout(self):

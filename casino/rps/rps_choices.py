@@ -1,7 +1,7 @@
 from discord.ui import View, button
 from discord import ButtonStyle, Color
 
-import random
+import random, logging
 
 class RPSChoices(View):
     def __init__(self, ctx, embed, rps, challenger, msg):
@@ -121,3 +121,8 @@ class RPSChoices(View):
             return False
 
         return True
+    
+
+    async def on_error(self, interaction, error, item):
+        logging.error("Error occured " + str(error) + " from this " + str(interaction))
+        await interaction.response.send_message("Something weird happened, your error has been logged. Please start a new game.", ephemeral=True)

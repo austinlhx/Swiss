@@ -1,7 +1,7 @@
 from discord.ui import View, button
 from discord import ButtonStyle, Color
 
-import asyncio, random
+import asyncio, random, logging
 
 class RouletteView(View):
     def __init__(self, ctx, embed, roulette):
@@ -81,6 +81,7 @@ class RouletteView(View):
             return "Red"
     
     async def on_error(self, interaction, error, item):
+        logging.error("Error occured " + str(error) + " from this " + str(interaction))
         await interaction.response.send_message("An error has occured! Please request another game.", ephemeral=True)
     
     async def on_timeout(self):
