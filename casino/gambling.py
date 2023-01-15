@@ -140,6 +140,7 @@ def add_gambling_features(client, redis_client):
         embed.add_field(name="Crash", value="$crash {wager_amount}", inline=False)
         embed.add_field(name="Battle", value="$battle @{user} {wager_amount}", inline=False)
         embed.add_field(name="Rock Paper Scissors", value="$rps @{user} {wager_amount}", inline=False)
+        embed.add_field(name="Play Music", value="$play {song_name} \n $pause \n $skip \n $resume \n $disconnect \n $rickroll", inline=False)
         embed.add_field(name="Leaderboard", value="$leaderboard", inline=False)
         embed.add_field(name="Daily Credits", value="$daily", inline=False)
         embed.add_field(name="Credit Count", value="$credits @{user} or $credits", inline=False)

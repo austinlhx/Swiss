@@ -5,3 +5,4 @@ google-auth-oauthlib
 deck_of_cards
 psycopg
 redis
+Wavelink
