@@ -31,7 +31,7 @@ def main():
     add_user_info_feature(client)
     add_misc_features(client)
     add_gambling_features(client, redis_client)
-    add_music_features(client)
+    # add_music_features(client)
     
     client.run(DISCORD_TOKEN)
 

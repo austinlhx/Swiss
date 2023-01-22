@@ -3,6 +3,7 @@ from casino.crash.crash_feature import add_crash_feature
 from casino.battle.battle_feature import add_battle_feature
 from casino.rps.rps_feature import add_rps_feature
 from casino.roulette.roulette_feature import add_roulette_feature
+from casino.poker.poker_feature import add_poker_feature
 from casino.blackjack.blackjack import POSTGRES
 from discord.ext import commands, tasks
 from discord import Embed, Color
@@ -16,6 +17,7 @@ def add_gambling_features(client, redis_client):
     add_crash_feature(client)
     add_battle_feature(client)
     add_rps_feature(client)
+    add_poker_feature(client)
 
     @client.command()
     async def daily(ctx):

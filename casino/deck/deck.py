@@ -1,5 +1,5 @@
-from casino.blackjack.deck.card import Card
-from casino.blackjack.deck.emoji import CARD_EMOJIS
+from casino.deck.card import Card
+from casino.deck.emoji import CARD_EMOJIS
 
 import random
 

@@ -1,6 +1,5 @@
-from deck_of_cards import deck_of_cards
 from casino.casino import Casino
-from casino.blackjack.deck.deck import CardDeck
+from casino.deck.deck import CardDeck
 
 import os, logging, discord, asyncio
 from casino.blackjack.blackjack_view import BlackjackView
