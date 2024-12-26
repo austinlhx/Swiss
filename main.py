@@ -28,7 +28,7 @@ def main():
         logging.info("Logged on")
     
     add_trophy_feature(client)
-    add_user_info_feature(client)
+    # add_user_info_feature(client)
     add_misc_features(client)
     add_gambling_features(client, redis_client)
     # add_music_features(client)
